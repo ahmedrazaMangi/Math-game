@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>⚡ MATH CHALLENGE · PERFECT FIT ⚡</title>
+    <style>
+        /* RESET & GLOBAL – same foundation, only improved */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            font-family: 'Segoe UI', Roboto, system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: radial-gradient(circle at 20% 20%, #1b3b6f, #0a1a2f);
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6px; /* slightly reduced for very narrow screens */
+            color: white;
+            touch-action: pan-x pan-y;
+        }
+
+        .game-container {
+            width: 100%;
+            max-width: 500px;
+            height: 100%;
+            max-height: 820px; /* increased a bit to avoid scroll on some devices */
+            background: rgba(10, 25, 45, 0.75);
+            backdrop-filter: blur(20px) saturate(180%);
+            -webkit-backdrop-filter: blur(20px) saturate(180%);
+            border-radius: 36px;
+            box-shadow: 0 25px 50px -8px rgba(0,0,0,0.6), inset 0 0 0 1px rgba(255,255,255,0.1);
+            padding: 18px 14px; /* slightly adjusted for better breathing */
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s;
+        }
+
+        /* no scroll inside – flex column with min-height 0 */
+        .game-area {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        /* ----- HEADER & TITLE ----- */
+        h1 {
+            font-size: clamp(1.8rem, 7vw, 2.4rem); /* slightly smaller on tiny screens */
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 1px;
+            background: linear-gradient(135deg, #b0e0ff, #f0d3ff);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 0 20px #60f0ff80;
+            margin-bottom: 6px; /* reduced */
+        }
+
+        /* modern stats row – improved wrapping */
+        .stats-modern {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center; /* center on wrap */
+            gap: 8px 5px;
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 60px;
+            padding: 10px 10px;
+            margin-bottom: 12px;
+            border: 1px solid rgba(255,255,240,0.1);
+            font-weight: 600;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 0.95rem; /* slightly smaller to fit */
+            background: rgba(0,0,0,0.2); /* subtle background for separation */
+            padding: 4px 8px;
+            border-radius: 40px;
+            min-width: 70px; /* ensures they don't get too tiny */
+            justify-content: center;
+        }
+        .stat-item i { font-style: normal; font-size: 1.2rem; width: 24px; }
+        .stat-value {
+            background: #1e3b5a;
+            padding: 4px 8px;
+            border-radius: 40px;
+            min-width: 44px;
+            text-align: center;
+            box-shadow: inset 0 2px 5px #00000030;
+        }
+
+        /* high score special */
+        #high-score-value {
+            background: #5f2b6e;
+            color: #ffd966;
+        }
+
+        /* ----- TIMER BAR ----- */
+        .timer-container {
+            width: 100%;
+            height: 11px; /* slightly thinner */
+            background: #142b3c;
+            border-radius: 30px;
+            margin: 8px 0 8px;
+            overflow: hidden;
+            box-shadow: inset 0 3px 6px #00000050;
+        }
+        #timer-fill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #62ff8e, #ffd966, #ff7b7b);
+            border-radius: 30px;
+            transition: width 0.1s linear;
+            box-shadow: 0 0 20px #88ffa0;
+        }
+
+        .problem-box {
+            background: rgba(255,255,255,0.05);
+            border-radius: 40px;
+            padding: 15px 3px; /* reduced vertical padding */
+            margin: 5px 0 10px;
+            border: 2px solid rgba(255,215,0,0.2);
+            box-shadow: inset 0 0 30px #00000050;
+        }
+
+        #problem-display {
+            font-size: clamp(2.2rem, 11vw, 3.8rem); /* adjusted */
+            font-weight: 800;
+            text-align: center;
+            letter-spacing: 2px; /* reduced for small screens */
+            text-shadow: 0 0 30px cyan;
+            word-break: break-word;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 12px;
+            margin: 8px 0;
+        }
+
+        #answer-input {
+            width: 160px; /* slightly smaller base */
+            max-width: 70%;
+            padding: 16px 8px; /* adjusted */
+            font-size: 2rem; /* responsive */
+            text-align: center;
+            background: rgba(255, 255, 255, 0.9);
+            border: none;
+            border-radius: 60px;
+            font-weight: 700;
+            color: #0a1f2f;
+            box-shadow: 0 6px 0 #0f2a40, 0 10px 20px black; /* reduced shadow height */
+            outline: 2px solid transparent;
+            transition: 0.05s linear;
+        }
+        #answer-input:focus {
+            outline: 2px solid #f0b3ff;
+            transform: scale(1.01);
+        }
+
+        #submit-btn {
+            background: linear-gradient(145deg, #00b4db, #0083b0);
+            border: none;
+            color: white;
+            font-weight: bold;
+            font-size: 1.6rem; /* slightly smaller */
+            padding: 14px 20px;
+            border-radius: 60px;
+            width: fit-content;
+            min-width: 180px; /* reduced */
+            box-shadow: 0 6px 0 #005f73, 0 10px 20px black;
+            transition: 0.08s linear;
+            touch-action: manipulation;
+            cursor: pointer;
+            letter-spacing: 1px;
+        }
+        #submit-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #005f73, 0 8px 12px black;
+        }
+        #submit-btn:disabled {
+            opacity: 0.6;
+            transform: translateY(2px);
+            box-shadow: 0 2px 0 #005f73;
+            pointer-events: none;
+        }
+
+        .feedback-area {
+            min-height: 44px;
+            font-size: 1.3rem;
+            font-weight: 600;
+            text-align: center;
+            margin: 8px 0 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: 0.2s;
+            padding: 0 4px;
+        }
+
+        .double-btn-row {
+            display: flex;
+            gap: 10px;
+            margin: 8px 0 8px;
+        }
+        .action-btn {
+            flex: 1;
+            background: #34495e;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            padding: 12px 5px;
+            border-radius: 45px;
+            box-shadow: 0 4px 0 #1e2b38, 0 6px 12px black;
+            transition: 0.05s;
+            cursor: pointer;
+            touch-action: manipulation;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+        }
+        .action-btn:active {
+            transform: translateY(3px);
+            box-shadow: 0 1px 0 #1e2b38, 0 6px 12px black;
+        }
+        #new-game-btn {
+            background: linear-gradient(145deg, #a1528c, #6c3483);
+        }
+
+        .settings-panel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0,0,0,0.3);
+            padding: 10px 12px;
+            border-radius: 60px;
+            margin: 6px 0;
+            font-size: 0.95rem;
+            border: 1px solid #ffffff20;
+            gap: 8px;
+        }
+
+        .toggle-switch {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 44px; /* slightly smaller */
+            height: 20px;
+        }
+        .switch input { opacity:0; width:0; height:0; }
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top:0; left:0; right:0; bottom:0;
+            background-color: #2c3e50;
+            border-radius: 34px;
+            transition: .3s;
+        }
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 18px;
+            width: 18px;
+            left: 3px;
+            bottom: 3px;
+            background-color: #ecf0f1;
+            border-radius: 50%;
+            transition: .3s;
+        }
+        input:checked + .slider {
+            background-color: #3498db;
+        }
+        input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        select {
+            background: #2d3f55;
+            color: white;
+            padding: 6px 14px;
+            border: none;
+            border-radius: 40px;
+            font-size: 0.95rem;
+            font-weight: 500;
+            outline: none;
+            border: 1px solid #8a9bb5;
+        }
+
+        .footer-info {
+            background: #0d1b2b;
+            border-radius: 30px;
+            padding: 8px 12px;
+            margin-top: 6px;
+            font-size: 0.8rem;
+            text-align: center;
+            color: #b5d0e0;
+            border: 1px solid #7f8c8d40;
+        }
+
+        /* GAME OVER OVERLAY */
+        .game-overlay {
+            position: absolute;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 36px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 30;
+            padding: 20px;
+            opacity: 0;
+            pointer-events: none;
+            transition: 0.25s ease;
+        }
+        .game-overlay.show {
+            opacity: 1;
+            pointer-events: all;
+        }
+        .game-overlay h2 {
+            font-size: 2.8rem; /* adjusted */
+            color: #ffb347;
+            text-shadow: 0 0 30px red;
+            text-align: center;
+        }
+        .game-overlay p {
+            font-size: 1.8rem;
+            margin: 12px 0;
+        }
+        #restart-overlay-btn {
+            background: linear-gradient(145deg, #fd746c, #ff9068);
+            border: none;
+            color: white;
+            font-size: 1.8rem;
+            padding: 16px 40px;
+            border-radius: 60px;
+            font-weight: bold;
+            box-shadow: 0 6px 0 #962d22;
+            cursor: pointer;
+            margin-top: 10px;
+            transition: 0.06s;
+        }
+        #restart-overlay-btn:active {
+            transform: translateY(4px);
+            box-shadow: 0 2px 0 #962d22;
+        }
+
+        /* fine-tuning for very small heights */
+        @media (max-height: 680px) {
+            .problem-box { padding: 12px 5px; }
+            #problem-display { font-size: clamp(2rem, 10vw, 3.2rem); }
+            .stats-modern { padding: 6px 8px; }
+            .footer-info { font-size: 0.7rem; padding: 4px; }
+            .action-btn { padding: 10px 5px; }
+            #submit-btn { padding: 12px 16px; font-size: 1.5rem; min-width: 160px; }
+            #answer-input { padding: 12px 6px; font-size: 1.8rem; }
+        }
+
+        /* extra small width */
+        @media (max-width: 360px) {
+            .settings-panel { flex-direction: column; align-items: stretch; }
+            .stat-item { font-size: 0.85rem; }
+            .stat-item i { font-size: 1rem; width: 20px; }
+            .double-btn-row { gap: 6px; }
+            .action-btn { font-size: 1rem; }
+        }
+    </style>
+</head>
+<body>
+<div class="game-container">
+    <h2>⚡ MATH · TIMED ⚡</h2>
+
+    <!-- stats row with highscore -->
+    <div class="stats-modern">
+        <div class="stat-item"><i>🎯</i><span class="stat-value" id="score">0</span></div>
+        <div class="stat-item"><i>📊</i><span class="stat-value" id="level">1</span></div>
+        <div class="stat-item"><i>❤️</i><span class="stat-value" id="lives">3</span></div>
+        <div class="stat-item"><i>🏆</i><span class="stat-value" id="high-score-value">0</span></div>
+    </div>
+
+    <!-- timer bar -->
+    <div class="timer-container">
+        <div id="timer-fill" style="width:100%"></div>
+    </div>
+
+    <!-- main game area (flexible) -->
+    <div class="game-area">
+        <div class="problem-box">
+            <div id="problem-display">5 + 3 = ?</div>
+        </div>
+
+        <div class="input-group">
+            <input type="number" id="answer-input" inputmode="numeric" placeholder="?" value="">
+            <button id="submit-btn">✔ CHECK</button>
+        </div>
+
+        <div class="feedback-area" id="feedback-message">✨ type answer</div>
+
+        <div class="double-btn-row">
+            <button class="action-btn" id="skip-btn">⏭ skip</button>
+            <button class="action-btn" id="new-game-btn">🔄 new game</button>
+        </div>
+    </div>
+
+    <!-- settings & footer -->
+    <div class="settings-panel">
+        <div class="toggle-switch">
+            <span>🔊</span>
+            <label class="switch">
+                <input type="checkbox" id="sound-toggle" checked>
+                <span class="slider"></span>
+            </label>
+        </div>
+        <div>
+            <select id="difficulty-select">
+                <option value="easy">easy</option>
+                <option value="medium" selected>medium</option>
+                <option value="hard">hard</option>
+            </select>
+        </div>
+        <div class="toggle-switch" style="gap:4px">
+            <span>⚡ streak</span>
+            <span id="streak-badge" style="background:#2c3e50; padding:4px 12px; border-radius:40px;">0</span>
+        </div>
+    </div>
+
+    <div class="footer-info">
+        ⏱️ time bonus · consecutive streak · reach high score
+    </div>
+
+    <!-- game over overlay -->
+    <div class="game-overlay" id="game-overlay">
+        <h2>GAME OVER</h2>
+        <p>score: <span id="final-score">0</span></p>
+        <button id="restart-overlay-btn">↻ play again</button>
+    </div>
+</div>
+
+<script>
+    // (your original JavaScript – unchanged)
+    (function() {
+        // ---------- GAME STATE ----------
+        let score = 0;
+        let level = 1;
+        let lives = 3;
+        let streak = 0;               // consecutive correct
+        let highScore = 0;
+
+        let currentProblem = {};
+        let correctAnswersInLevel = 0; // for level up (need 5)
+
+        // timer related
+        let timerInterval = null;
+        let timeLeft = 10;            // seconds, changes with difficulty
+        const MAX_TIME = { easy: 15, medium: 10, hard: 7 };
+        let timeForCurrentProblem = 10;
+
+        // UI locks
+        let processing = false;        // block double submits/skip during feedback
+        let soundEnabled = true;
+        let audioCtx = null;
+
+        // DOM elements
+        const problemEl = document.getElementById('problem-display');
+        const answerInput = document.getElementById('answer-input');
+        const submitBtn = document.getElementById('submit-btn');
+        const skipBtn = document.getElementById('skip-btn');
+        const newGameBtn = document.getElementById('new-game-btn');
+        const feedbackEl = document.getElementById('feedback-message');
+        const scoreEl = document.getElementById('score');
+        const levelEl = document.getElementById('level');
+        const livesEl = document.getElementById('lives');
+        const highScoreEl = document.getElementById('high-score-value');
+        const streakBadge = document.getElementById('streak-badge');
+        const timerFill = document.getElementById('timer-fill');
+        const gameOverlay = document.getElementById('game-overlay');
+        const finalScoreSpan = document.getElementById('final-score');
+        const restartOverlayBtn = document.getElementById('restart-overlay-btn');
+        const soundToggle = document.getElementById('sound-toggle');
+        const difficultySelect = document.getElementById('difficulty-select');
+
+        // ---------- HELPER FUNCTIONS ----------
+        function updateUI() {
+            scoreEl.textContent = score;
+            levelEl.textContent = level;
+            livesEl.textContent = lives;
+            streakBadge.textContent = streak;
+            if (score > highScore) {
+                highScore = score;
+                localStorage.setItem('mathHighScore', highScore);
+            }
+            highScoreEl.textContent = highScore;
+        }
+
+        // load highscore from storage
+        try {
+            const saved = localStorage.getItem('mathHighScore');
+            if (saved) highScore = parseInt(saved, 10) || 0;
+            highScoreEl.textContent = highScore;
+        } catch (e) {}
+
+        // ---------- AUDIO ----------
+        function initAudio() {
+            try {
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            } catch (e) {
+                soundEnabled = false;
+                soundToggle.checked = false;
+                soundToggle.disabled = true;
+            }
+        }
+        function playSound(type) {
+            if (!soundEnabled || !audioCtx) return;
+            try {
+                const osc = audioCtx.createOscillator();
+                const gain = audioCtx.createGain();
+                osc.connect(gain);
+                gain.connect(audioCtx.destination);
+                const now = audioCtx.currentTime;
+                if (type === 'correct') {
+                    osc.frequency.value = 700;
+                    gain.gain.setValueAtTime(0.1, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.15);
+                    osc.start(now); osc.stop(now + 0.15);
+                } else if (type === 'wrong') {
+                    osc.frequency.value = 250;
+                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.3);
+                    osc.start(now); osc.stop(now + 0.3);
+                } else if (type === 'levelup') {
+                    [500, 650, 800, 950].forEach((f, i) => {
+                        setTimeout(() => {
+                            if (!soundEnabled || !audioCtx) return;
+                            const o = audioCtx.createOscillator();
+                            const g = audioCtx.createGain();
+                            o.connect(g); g.connect(audioCtx.destination);
+                            o.frequency.value = f;
+                            g.gain.setValueAtTime(0.08, audioCtx.currentTime);
+                            g.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.12);
+                            o.start(); o.stop(audioCtx.currentTime + 0.12);
+                        }, i * 100);
+                    });
+                } else if (type === 'gameover') {
+                    osc.frequency.value = 150;
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.exponentialRampToValueAtTime(0.01, now + 0.5);
+                    osc.start(now); osc.stop(now + 0.5);
+                }
+            } catch (e) {}
+        }
+
+        // ---------- TIMER CONTROL ----------
+        function stopTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function startTimer(seconds) {
+            stopTimer();
+            timeLeft = seconds;
+            timerFill.style.width = '100%';
+            timerInterval = setInterval(() => {
+                if (processing) return; // don't count down while showing feedback
+                timeLeft -= 0.1;
+                const percent = Math.max(0, (timeLeft / seconds) * 100);
+                timerFill.style.width = `${percent}%`;
+
+                if (timeLeft <= 0) {
+                    // TIME'S UP → wrong answer
+                    stopTimer();
+                    if (!processing && lives > 0) {
+                        handleTimeout();
+                    }
+                }
+            }, 100);
+        }
+
+        function handleTimeout() {
+            if (processing) return;
+            processing = true;
+            playSound('wrong');
+            feedbackEl.textContent = `⏰ Time out! Answer was ${currentProblem.answer}`;
+            feedbackEl.style.color = '#ff7b7b';
+            lives--;
+            streak = 0;
+            updateUI();
+
+            if (lives <= 0) {
+                gameOver();
+            } else {
+                setTimeout(() => {
+                    generateProblem();
+                    processing = false;
+                }, 1400);
+            }
+        }
+
+        // ---------- PROBLEM GENERATION ----------
+        function generateProblem() {
+            stopTimer();
+            const diff = difficultySelect.value;
+            const baseRange = diff === 'easy' ? 12 : (diff === 'medium' ? 20 : 40);
+            const range = baseRange + level * 2; // scales with level
+            const ops = diff === 'easy' ? ['+', '-'] : (diff === 'medium' ? ['+', '-', '*'] : ['+', '-', '*', '/']);
+
+            const op = ops[Math.floor(Math.random() * ops.length)];
+            let num1, num2, answer;
+
+            switch (op) {
+                case '+':
+                    num1 = Math.floor(Math.random() * range) + 1;
+                    num2 = Math.floor(Math.random() * range) + 1;
+                    answer = num1 + num2;
+                    break;
+                case '-':
+                    num1 = Math.floor(Math.random() * range) + 5;
+                    num2 = Math.floor(Math.random() * num1) + 1;
+                    answer = num1 - num2;
+                    break;
+                case '*':
+                    num1 = Math.floor(Math.random() * (range/3)) + 2;
+                    num2 = Math.floor(Math.random() * 5) + 2;
+                    answer = num1 * num2;
+                    break;
+                case '/':
+                    num2 = Math.floor(Math.random() * 7) + 2;
+                    answer = Math.floor(Math.random() * 6) + 2;
+                    num1 = num2 * answer;
+                    break;
+            }
+
+            currentProblem = { num1, num2, op, answer };
+            problemEl.textContent = `${num1} ${op} ${num2} = ?`;
+            answerInput.value = '';
+            feedbackEl.textContent = '⚡ enter answer';
+            feedbackEl.style.color = 'white';
+
+            // set timer based on difficulty
+            timeForCurrentProblem = MAX_TIME[diff] || 10;
+            startTimer(timeForCurrentProblem);
+
+            // enable UI if was disabled
+            processing = false;
+            submitBtn.disabled = false;
+            answerInput.focus();
+        }
+
+        // ---------- ANSWER CHECK ----------
+        function checkAnswer() {
+            if (processing) return;
+            const userVal = parseInt(answerInput.value.trim(), 10);
+            if (isNaN(userVal)) {
+                feedbackEl.textContent = '❌ enter a number!';
+                return;
+            }
+
+            // stop timer, lock UI
+            stopTimer();
+            processing = true;
+            submitBtn.disabled = true;
+
+            const correct = (userVal === currentProblem.answer);
+            if (correct) {
+                // points: base * level + time bonus + streak
+                const timeBonus = Math.max(0, Math.ceil(timeLeft * 2));
+                const streakBonus = streak * 5;
+                const earned = 10 * level + timeBonus + streakBonus;
+                score += earned;
+                streak++;
+                correctAnswersInLevel++;
+
+                feedbackEl.innerHTML = `✅ CORRECT! +${earned} (⏱️${timeBonus}🔥${streakBonus})`;
+                feedbackEl.style.color = '#a3e635';
+                playSound('correct');
+
+                // level up if 5 correct in level
+                if (correctAnswersInLevel >= 5) {
+                    levelUp();
+                }
+            } else {
+                // wrong
+                playSound('wrong');
+                feedbackEl.textContent = `❌ Wrong! Answer = ${currentProblem.answer}`;
+                feedbackEl.style.color = '#ff8a8a';
+                lives--;
+                streak = 0;
+            }
+
+            updateUI();
+
+            if (lives <= 0) {
+                gameOver();
+            } else {
+                // next problem after delay
+                setTimeout(() => {
+                    generateProblem();
+                }, 1500);
+            }
+        }
+
+        function levelUp() {
+            level++;
+            correctAnswersInLevel = 0;
+            playSound('levelup');
+            // show level up in feedback (already will be shown)
+            feedbackEl.textContent = `⬆️ LEVEL ${level}! ⬆️`;
+            // but keep it, it'll be overwritten by next generate
+        }
+
+        function skipQuestion() {
+            if (processing) return;
+            stopTimer();
+            processing = true;
+            submitBtn.disabled = true;
+            playSound('wrong');
+            feedbackEl.textContent = `⏩ skipped. Answer: ${currentProblem.answer}`;
+            feedbackEl.style.color = '#ffb347';
+            lives--;
+            streak = 0;
+            updateUI();
+
+            if (lives <= 0) {
+                gameOver();
+            } else {
+                setTimeout(() => {
+                    generateProblem();
+                }, 1200);
+            }
+        }
+
+        function gameOver() {
+            stopTimer();
+            playSound('gameover');
+            finalScoreSpan.textContent = score;
+            gameOverlay.classList.add('show');
+            processing = true; // block further actions
+        }
+
+        function newGame() {
+            // reset all
+            stopTimer();
+            gameOverlay.classList.remove('show');
+            score = 0;
+            level = 1;
+            lives = 3;
+            streak = 0;
+            correctAnswersInLevel = 0;
+            processing = false;
+            submitBtn.disabled = false;
+            updateUI();
+            generateProblem();
+        }
+
+        // ---------- EVENT LISTENERS ----------
+        submitBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            checkAnswer();
+        });
+
+        answerInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                submitBtn.click();
+            }
+        });
+
+        skipBtn.addEventListener('click', () => {
+            if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+            skipQuestion();
+        });
+
+        newGameBtn.addEventListener('click', newGame);
+        restartOverlayBtn.addEventListener('click', newGame);
+
+        soundToggle.addEventListener('change', () => {
+            soundEnabled = soundToggle.checked;
+        });
+
+        difficultySelect.addEventListener('change', () => {
+            if (!processing) {
+                // restart with new difficulty but keep lives/score? generate new problem.
+                generateProblem();
+            }
+        });
+
+        // focus input on any tap (helps mobile)
+        answerInput.addEventListener('touchstart', () => {
+            answerInput.focus();
+        });
+
+        // Initialize
+        window.addEventListener('load', () => {
+            initAudio();
+            newGame();
+        });
+
+        // Prevent accidental page zoom on double-tap etc
+        document.addEventListener('touchmove', (e) => { if (e.scale !== 1) e.preventDefault(); }, { passive: false });
+
+        // final safety: ensure game container height never scrolls
+        window.addEventListener('resize', () => { /* nothing needed */ });
+    })();
+</script>
+</body>
+</html>
